@@ -61,8 +61,8 @@ Built as a hands-on learning project to understand RAG, agents, and LangGraph by
 
 ## 🗺️ Architecture
 
-A single LangGraph classifies intent, then routes to one of three branches: answer a doubt (retrieve → answer), generate a quiz (check history → retrieve → generate), or log a quiz result. Details in the code — architecture diagram coming as the project matures.
+A single LangGraph classifies intent, then routes to one of three branches: answer a doubt (retrieve → answer), generate a quiz (check history → retrieve → generate), or log a quiz result. Details in the code - architecture diagram coming as the project matures.
 
 ## 📄 License
 
-MIT - see [LICENSE](./LICENSE).
+MIT - see [LICENSE](./LICENSE)
