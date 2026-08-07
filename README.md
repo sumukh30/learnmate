@@ -8,17 +8,17 @@ Built as a hands-on learning project to understand RAG, agents, and LangGraph by
 
 ## ✨ What it does (or will do)
 
-- 🧠 **Doubt-clearing (RAG)** — Ask "why," "how," or "when" questions about your own uploaded notes/textbook and get answers grounded in _your_ material, with source citations.
-- 📝 **Quiz generation (Agent)** — Ask to be quizzed on a topic and get exam-style practice questions generated from your actual notes.
-- 📈 **Adaptive difficulty** — The agent tracks what you get wrong and leans into weak topics on future quizzes.
+- 🧠 **Doubt-clearing (RAG)**: Ask "why," "how," or "when" questions about your own uploaded notes/textbook and get answers grounded in _your_ material, with source citations.
+- 📝 **Quiz generation (Agent)**: Ask to be quizzed on a topic and get exam-style practice questions generated from your actual notes.
+- 📈 **Adaptive difficulty**: The agent tracks what you get wrong and leans into weak topics on future quizzes.
 
 ## 🛠️ Tech stack
 
-- [LangChain](https://www.langchain.com/) + [LangGraph](https://www.langchain.com/langgraph) — orchestration and agent logic
-- [Chroma](https://www.trychroma.com/) — vector database for retrieval
-- [Ollama](https://ollama.com) — running local open-source LLMs (Llama 3.2)
-- FastAPI — API layer _(coming soon)_
-- React — frontend _(stretch goal)_
+- [LangChain](https://www.langchain.com/) + [LangGraph](https://www.langchain.com/langgraph) - orchestration and agent logic
+- [Chroma](https://www.trychroma.com/) - vector database for retrieval
+- [Ollama](https://ollama.com) - running local open-source LLMs (Llama 3.2)
+- FastAPI - API layer _(coming soon)_
+- React - frontend _(stretch goal)_
 
 ## 🚦 Status
 
@@ -65,4 +65,4 @@ A single LangGraph classifies intent, then routes to one of three branches: answ
 
 ## 📄 License
 
-MIT — see [LICENSE](./LICENSE).
+MIT - see [LICENSE](./LICENSE).
