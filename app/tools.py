@@ -58,6 +58,21 @@ def log_quiz_result(student_id: str, topic: str, correct: bool) -> str:
 
 
 @tool
+def mark_topic_weak(student_id: str, topic: str) -> str:
+    """Manually flag a topic as one the student wants more practice on,
+    without needing a quiz failure first."""
+    scores = _load_scores()
+    student = scores.setdefault(student_id, {})
+    stats = student.setdefault(topic, {"attempts": 1, "correct": 0})
+    # only downgrade if not already tracked as weak, don't erase real history
+    if stats.get("attempts", 0) == 0:
+        stats["attempts"] = 1
+        stats["correct"] = 0
+    _save_scores(scores)
+    return f"Got it - I'll prioritize {topic} in future quizzes."
+
+
+@tool
 def generate_quiz(topic: str, context: str, difficulty: str = "medium", num_questions: int = 3) -> str:
     """Generate `num_questions` quiz questions about `topic`, grounded
     in `context` (retrieved notes text), at the given difficulty."""
