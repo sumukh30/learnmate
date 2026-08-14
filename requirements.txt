@@ -7,3 +7,5 @@ pypdf==5.1.0
 python-dotenv==1.0.1
 langchain-chroma==0.1.4
 docx2txt==0.8
+fastapi==0.115.5
+uvicorn==0.32.1

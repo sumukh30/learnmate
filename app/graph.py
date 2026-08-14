@@ -37,15 +37,25 @@ class State(TypedDict):
 def classify_intent(state: State) -> State:
     query_lower = state["query"].lower()
 
-    # Fast-path: unambiguous read-only requests for weak topics don't
-    # need an LLM call at all, and this sidesteps classifier flakiness
-    # on a 3B model for a case that's cheap to detect directly.
+    # Fast-path 1: weak-topic lookups (existing)
     weak_topic_phrases = [
         "my weak topics", "weak topics", "struggling with", "struggling on",
         "what should i focus on", "what am i bad at", "weak areas",
     ]
     if any(phrase in query_lower for phrase in weak_topic_phrases) and "add" not in query_lower and "mark" not in query_lower:
         state["intent"] = "list_weak_topics"
+        state["topic"] = None
+        state["difficulty"] = "medium"
+        state["is_correct"] = None
+        return state
+
+    # Fast-path 2: unambiguous doubt questions. "quiz"/"test me" would
+    # never appear alongside these patterns in a genuine doubt question,
+    # so this is safe to short-circuit before the LLM call.
+    doubt_starters = ["what is ", "what's ", "why does ", "why is ", "how does ", "how is ", "when does ", "explain "]
+    quiz_signal_words = ["quiz", "test me", "questions about"]
+    if any(query_lower.startswith(s) for s in doubt_starters) and not any(w in query_lower for w in quiz_signal_words):
+        state["intent"] = "doubt"
         state["topic"] = None
         state["difficulty"] = "medium"
         state["is_correct"] = None
@@ -156,6 +166,7 @@ def list_weak_topics_node(state: State) -> State:
 
 def generate_quiz_node(state: State) -> State:
     context = "\n\n".join(d["text"] for d in state["retrieved_docs"])
+    sources = ", ".join(sorted({d["source"].split("/")[-1] for d in state["retrieved_docs"]}))
     topic = state.get("topic") or "the retrieved material"
 
     difficulty = state["difficulty"]
@@ -171,7 +182,7 @@ def generate_quiz_node(state: State) -> State:
     note = ""
     if state.get("weak_topics"):
         note = f"\n\n(note: you've been weak on: {', '.join(state['weak_topics'])})"
-    state["response"] = quiz + note
+    state["response"] = f"{quiz}\n\n(source: {sources}){note}"
     state["last_quiz_topic"] = topic
     return state
 

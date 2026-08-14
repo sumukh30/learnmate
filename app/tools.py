@@ -91,3 +91,26 @@ Answer: <answer>
 """
     response = _llm.invoke(prompt)
     return response.content
+
+
+@tool
+def get_sample_topics(n: int = 3) -> list[str]:
+    """Return a few topic-like phrases from the indexed notes, for
+    use as example prompts. Pulled from document headings if available."""
+    import re
+    from app.config import NOTES_DIR
+    import glob
+
+    headings = []
+    for path in glob.glob(f"{NOTES_DIR}/**/*.md", recursive=True):
+        with open(path, "r", errors="ignore") as f:
+            text = f.read()
+        headings.extend(re.findall(r"^#{1,3}\s+(.+)$", text, re.MULTILINE))
+
+    # crude fallback if no markdown headings exist (e.g. pdf/docx only)
+    if not headings:
+        return ["your notes", "a key concept", "a recent chapter"]
+
+    import random
+    random.shuffle(headings)
+    return headings[:n]
