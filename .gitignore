@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 data/chroma_db/
+data/sample_notes/
 data/scores.json
 .env
 .DS_Store

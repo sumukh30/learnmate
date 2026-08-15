@@ -6,6 +6,7 @@ or app.ingest.build_index(). No LangGraph/RAG logic lives here.
 Run with:
     uvicorn app.main:app --reload
 """
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -17,10 +18,13 @@ app = FastAPI(title="LearnMate API")
 
 # Allows a React dev server (different port) to call this API from
 # the browser. Restrict origins to something specific before any
-# real deployment — "*" is fine for local development only.
+# real deployment. "*" is fine for local development only.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -43,9 +47,13 @@ def ask(payload: AskRequest):
     own intent classification decides what happens — this endpoint
     doesn't need to know or care which branch runs.
     """
+    if not payload.query.strip():
+        raise HTTPException(status_code=422, detail="Query cannot be empty.")
     try:
         result = run(payload.query, student_id=payload.student_id)
         return AskResponse(response=result)
+    except httpx.ConnectError:
+        raise HTTPException(status_code=503, detail="Can't reach the local model. Is Ollama running?")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Something went wrong: {str(e)}")
 

@@ -1,81 +1,76 @@
 # 📚 LearnMate
 
-> 🚧 **Work in progress** — actively being built, day by day. Not production-ready yet. Expect rough edges, missing pieces, and things that will change.
+**Your notes, made queryable. Your gaps, made visible.**
 
-An adaptive study copilot that lets you **ask doubts on your own notes** and **get quizzed** on them — with quiz difficulty and topic selection that adapts based on how you've done before.
+LearnMate is an adaptive study copilot — ask doubts on your own notes and textbooks, get quizzed on what you've learned, and let it quietly track what you're actually struggling with so future quizzes focus there instead of wherever you happen to click.
 
-Built as a hands-on learning project to understand RAG, agents, and LangGraph by actually building with them — not just reading about them.
+## 🎯 Why this was made?
 
-## ✨ What it does
+Studying for an exam or interview usually means two disconnected habits: rereading notes when something's unclear, and separately trying to guess what kind of questions might come up. LearnMate merges both into one loop — the same material you're confused about is the same material it quizzes you on, and the same quiz results decide what it pushes you toward next.
 
-- 🧠 **Doubt-clearing (RAG)** — Ask "why," "how," or "when" questions about your own uploaded notes/textbook and get answers grounded in *your* material, with source citations.
-- 📝 **Quiz generation (Agent)** — Ask to be quizzed on a topic and get 10 exam-style practice questions generated from your actual notes. No topic given? It defaults to your weakest topic automatically, or tells you honestly if it has no history yet.
-- 📈 **Adaptive difficulty** — The agent tracks what you get wrong per topic and drops difficulty on topics you're struggling with.
-- 🎯 **Manual weak-topic tagging** — Tell it directly "I'm not strong in X" and it'll prioritize that topic in future quizzes, without needing a quiz failure first.
-- 📋 **Weak-topics lookup** — Ask "what are my weak topics?" and get a straight answer pulled from your actual history, not a guess.
-- 👥 **Multi-student support** — Score history is tracked per student ID, so more than one person can use the same instance without their progress mixing.
+## ✨ What it does?
+
+- 🧠 **Ask a doubt** — "why does X happen," "how does Y work" — answered strictly from your own notes, with the source file cited, not from general model knowledge.
+- 📝 **Take a quiz** — 10 exam-style questions generated from your material. No topic in mind? It defaults to your weakest area automatically, or tells you plainly if there's no history yet.
+- 📈 **Adaptive difficulty** — quizzes get easier on topics you're struggling with, without you having to ask.
+- 🎯 **Flag a weak spot manually** — "I'm not strong in backpropagation" and it's prioritized in future quizzes, validated against your actual notes first so it can't silently track a topic that doesn't exist.
+- 📋 **Ask what you're weak on** — a straight, honest answer pulled from real history, not a guess.
+- 👥 **Multi-student, session-persistent** — separate progress per student ID, and it remembers context (like "what quiz did I just take") even across restarts.
+
+## 🧩 How it works?
+
+A **LangGraph** state machine sits at the center. Every message is classified into one of five intents — doubt, quiz request, submit answer, mark weak, list weak topics — and routed to a different combination of retrieval and tool calls:
+
+- **Doubt** → retrieve relevant chunks from a vector store → answer grounded strictly in that context.
+- **Quiz** → check weak-topic history → retrieve chunks on the target topic → generate questions at the right difficulty.
+- **Submit answer** → log correctness against the explicit or last-known topic, updating per-student accuracy.
+- **Mark weak / list weak topics** → read or write the student's tracked history directly.
+
+Two of the most unambiguous, highest-traffic intents are handled by a fast keyword check _before_ any LLM call — a 3B local model showed real run-to-run classification variance on certain phrasings, so the fast-path removes the LLM from the decision entirely where a deterministic rule is more reliable. Everything else still goes through the LLM classifier.
 
 ## 🛠️ Tech stack
 
-- [LangChain](https://www.langchain.com/) + [LangGraph](https://www.langchain.com/langgraph) — orchestration and agent logic
-- [Chroma](https://www.trychroma.com/) — vector database for retrieval
-- [Ollama](https://ollama.com) — running local open-source LLMs (Llama 3.2)
-- FastAPI — API layer *(in progress)*
-- React — frontend *(in progress)*
+| Layer               | Tool                              |
+| ------------------- | --------------------------------- |
+| Agent orchestration | LangChain + LangGraph             |
+| Retrieval           | Chroma (vector store)             |
+| LLM + embeddings    | Ollama, running Llama 3.2 locally |
+| API                 | FastAPI                           |
+| Frontend            | React (Vite)                      |
 
-## 🚦 Status
-
-| Piece | Status |
-|---|---|
-| Ingestion + retrieval (RAG) | ✅ working |
-| LangGraph state machine (5 intents, 9 nodes) | ✅ working |
-| Agent tools (quiz, scoring, weak-topic tracking) | ✅ working |
-| Multi-student support | ✅ working |
-| FastAPI endpoints | 🟡 in progress |
-| React frontend | ⚪ not started |
+Entirely open-source, entirely local — no API keys, no per-request cost, no data leaving your machine.
 
 ## 🚀 Setup
 
-1. Install [Ollama](https://ollama.com) and pull the models:
 ```bash
-   ollama pull llama3.2
-   ollama pull nomic-embed-text
+# 1. Install Ollama and pull the models
+ollama pull llama3.2
+ollama pull nomic-embed-text
+
+# 2. Backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m app.ingest        # index your notes
+uvicorn app.main:app --reload
+
+# 3. Frontend (new terminal tab)
+cd frontend
+npm install
+npm run dev
 ```
-2. Set up the environment:
-```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-```
-3. Add notes to `data/sample_notes/` (`.md`, `.txt`, `.pdf`, `.docx` supported), then build the index:
-```bash
-   python -m app.ingest
-```
-4. Run it:
-```bash
-   python -m app.graph
-```
-   You'll be asked for a student ID (press enter to use a default one).
 
-## 🗺️ Architecture
+Open `http://localhost:5173`, drop your own notes/textbooks (`.md`, `.txt`, `.pdf`, `.docx`) into `data/sample_notes/`, re-run `python -m app.ingest`, and it's studying your material.
 
-A single LangGraph classifies intent, then routes to one of five branches:
-- **Doubt** → retrieve → answer, with source citation
-- **Quiz request** → check history → (retrieve → generate) or a clear "no history yet" message if there's nothing to go on
-- **Submit answer** → log result against the explicit topic, or the last quiz topic if none was restated
-- **Mark weak** → manually flag a topic as needing more practice
-- **List weak topics** → read back current weak-topic history
+## ⚠️ Known limitations
 
-A keyword fast-path handles the highest-value read-only intent (weak-topic lookup) directly, without an LLM call, since small local models showed some run-to-run classification instability on ambiguous phrasing.
+Being upfront about these matters more than pretending they don't exist:
 
-## ⚠️ Known limitations (Day 1 scope)
-
-- Intent classification via a 3B local model has some inherent instability on ambiguous or rephrased requests — one fast-path exists for the highest-value case, but not every phrasing is covered.
-- No error handling yet if Ollama isn't running — will raise a raw exception (Day 2 fixes this at the API layer).
-- Quiz generation quality depends on how well the underlying notes are chunked; sparse or poorly structured notes will produce weaker questions.
-- Manually-tagged weak topics aren't validated against the actual notes corpus — you can tag a topic that doesn't exist in your material.
-- Score history is a flat JSON file — fine for a handful of students, not built for real concurrency.
-- State (like "last quiz topic") resets between separate runs of the CLI — no persistent session memory yet.
+- **Intent classification isn't perfect.** A 3B local model doing few-shot classification will misread some phrasings it hasn't seen close variants of. Two fast-paths cover the highest-value cases; the rest rely on the LLM and can occasionally misfire.
+- **Self-reported grading.** "I got it wrong" is trusted, not verified — there's no automatic answer-checking against the generated correct answer.
+- **Weak-topic validation is a keyword match**, not true semantic matching — a topic phrased differently than your notes may be rejected even if the concept exists.
+- **Flat-file storage.** Score and session history are JSON files — fine for personal or small-group use, not built for real concurrency.
+- **Local only, for now.** Runs on your machine via Ollama; not yet deployed to the cloud.
 
 ## 📄 License
 

@@ -31,9 +31,18 @@ h1, .brand, .login-mark, .brand-mark, .margin-title, .landing-eyebrow,
 
 button { font-family: inherit; cursor: pointer; }
 
-/* ---------- Login ---------- */
+/* ---------- Login (warm, self-scoped) ---------- */
 
 .login-screen {
+  --l-bg: #F7F1E8;
+  --l-card: #EFE6D6;
+  --l-ink: #33291F;
+  --l-ink-dim: #8A7A63;
+  --l-accent: #B8863B;
+  --l-accent-soft: #E8D9BC;
+  --l-line: #DCCEB3;
+  --l-error: #B0563C;
+
   height: 100%;
   position: relative;
   display: flex;
@@ -41,18 +50,19 @@ button { font-family: inherit; cursor: pointer; }
   justify-content: center;
   padding: 24px;
   overflow: hidden;
+  background: var(--l-bg);
+  color: var(--l-ink);
 }
 
 .grid-glow {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 25%, rgba(110,231,196,0.10) 0, transparent 38%),
-    radial-gradient(circle at 80% 80%, rgba(240,135,107,0.08) 0, transparent 40%),
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: auto, auto, 44px 44px, 44px 44px;
-  opacity: 0.6;
+    radial-gradient(circle at 18% 22%, rgba(184,134,59,0.10) 0, transparent 40%),
+    radial-gradient(circle at 82% 78%, rgba(184,134,59,0.07) 0, transparent 42%),
+    linear-gradient(var(--l-line) 1px, transparent 1px);
+  background-size: auto, auto, 100% 38px;
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -60,58 +70,59 @@ button { font-family: inherit; cursor: pointer; }
   position: relative;
   width: 100%;
   max-width: 400px;
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  background: var(--l-card);
+  border: 1px solid var(--l-line);
+  border-radius: 16px;
   padding: 44px 36px;
   text-align: center;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+  box-shadow: 0 20px 50px rgba(90,68,32,0.14);
 }
 
-.login-mark { font-size: 34px; color: var(--accent); margin-bottom: 6px; display: flex; justify-content: center; }
-.login-card h1 { font-size: 29px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; }
-.login-sub { color: var(--ink-dim); font-size: 13.5px; margin: 0 0 28px; line-height: 1.65; }
+.login-mark { font-size: 34px; color: var(--l-accent); margin-bottom: 6px; display: flex; justify-content: center; }
+.login-card h1 { font-size: 29px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.02em; color: var(--l-ink); }
+.login-sub { color: var(--l-ink-dim); font-size: 13.5px; margin: 0 0 28px; line-height: 1.65; }
 .login-card form { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-.login-card label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); }
+.login-card label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--l-ink-dim); }
 
 .login-card input {
   font-family: "IBM Plex Mono", monospace;
   font-size: 15px;
   padding: 12px 14px;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--ink);
+  border: 1.5px solid var(--l-line);
+  border-radius: 9px;
+  background: #FBF7EF;
+  color: var(--l-ink);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.login-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-.login-card input[aria-invalid="true"] { border-color: var(--coral); }
+.login-card input:focus { border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-accent-soft); }
+.login-card input[aria-invalid="true"] { border-color: var(--l-error); }
 
 .input-meta {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: var(--ink-dim);
+  color: var(--l-ink-dim);
   margin-top: -1px;
 }
-.login-error { color: var(--coral); }
+.login-error { color: var(--l-error); }
 .char-count { font-variant-numeric: tabular-nums; }
+.char-count-full { color: var(--l-error); font-weight: 600; }
 
 .login-card button {
   margin-top: 14px;
-  background: var(--accent);
-  color: #06231B;
+  background: var(--l-accent);
+  color: #FBF3E4;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   padding: 13px 16px;
   font-size: 14.5px;
   font-weight: 700;
   font-family: "Sora", sans-serif;
   transition: transform 0.12s, box-shadow 0.12s;
 }
-.login-card button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(110,231,196,0.22); }
-.login-card button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.login-card button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(184,134,59,0.28); }
+.login-card button:focus-visible { outline: 2px solid var(--l-accent); outline-offset: 3px; }
 
 /* ---------- App shell ---------- */
 
@@ -127,7 +138,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
-.brand-mark { color: var(--accent); display: flex; align-items: center; }
+.brand-mark { color: var(--accent); }
 
 .header-right { display: flex; align-items: center; gap: 10px; }
 
@@ -165,7 +176,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Chat pane / landing ---------- */
 
-.chat-pane { overflow-y: auto; padding: 28px 24px 14px; display: flex; flex-direction: column; gap: 22px; }
+.chat-pane { overflow-y: auto; min-height: 0; padding: 28px 24px 14px; display: flex; flex-direction: column; gap: 22px; }
 
 .landing { margin: auto 0; text-align: center; max-width: 620px; margin-left: auto; margin-right: auto; }
 
@@ -226,11 +237,11 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: 12px;
-  overflow: hidden;
   max-width: 640px;
 }
 
 .qa-question {
+  border-radius: 11px 11px 0 0;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -301,14 +312,15 @@ button { font-family: inherit; cursor: pointer; }
 
 .worksheet-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 10px;
-  margin-bottom: 4px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-bottom: 12px;
+  margin-bottom: 6px;
   border-bottom: 1px solid var(--line);
 }
 .worksheet-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
-.worksheet-source { font-size: 11px; color: var(--ink-dim); font-family: "IBM Plex Mono", monospace; }
+.worksheet-source { font-size: 11px; color: var(--ink-dim); font-family: "IBM Plex Mono", monospace; word-break: break-word; }
 
 .worksheet-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .worksheet-item:last-of-type { border-bottom: none; }
@@ -348,7 +360,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Margin pane ---------- */
 
-.margin-pane { border-left: 1px solid var(--line); padding: 28px 18px; overflow-y: auto; }
+.margin-pane { border-left: 1px solid var(--line); padding: 28px 18px; overflow-y: auto; min-height: 0; }
 .margin-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); margin-bottom: 16px; }
 .margin-empty { font-size: 12px; color: var(--ink-dim); font-style: italic; }
 .sticky-board { display: flex; flex-direction: column; gap: 14px; }

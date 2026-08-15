@@ -50,7 +50,7 @@ function QuizWorksheet({ questions, note, source }) {
     <div className="worksheet">
       <div className="worksheet-head">
         <span className="worksheet-tag">quiz</span>
-        {source && <span className="worksheet-source">from {source}</span>}
+        {source && <span className="worksheet-source">source: {source}</span>}
       </div>
       {questions.map((q) => (
         <div className="worksheet-item" key={q.number}>
@@ -69,18 +69,19 @@ function QuizWorksheet({ questions, note, source }) {
           </button>
         </div>
       ))}
-      {note && <div className="worksheet-note">⚑ {note}</div>}
+      {note && <div className="worksheet-note">⚑ you've been weak on: {note.replace(/^you've been weak on:\s*/i, "")}</div>}
     </div>
   );
 }
 
 function QACard({ question, answerText }) {
-  const source = extractTag(answerText, "source");
-  const noteMatch = answerText.match(/\(note:(.+?)\)\s*$/s);
   let body = answerText;
-  if (source) body = body.replace(/\(source:.+\)\s*$/s, "");
-  if (noteMatch) body = body.replace(noteMatch[0], "");
-  body = body.trim();
+
+  const noteMatch = body.match(/\(note:(.+?)\)\s*$/s);
+  if (noteMatch) body = body.replace(noteMatch[0], "").trim();
+
+  const source = extractTag(body, "source");
+  if (source) body = body.replace(/\(source:.+\)\s*$/s, "").trim();
 
   const quiz = parseQuizQuestions(body);
 
@@ -148,6 +149,7 @@ export default function App() {
       .then((r) => (r.ok ? r.json() : { topics: [] }))
       .then((d) => setSampleTopics(d.topics || []))
       .catch(() => setSampleTopics([]));
+    refreshWeakTopics();
   }, [loggedIn]);
 
   async function callAsk(query) {
@@ -216,8 +218,13 @@ export default function App() {
 
   function handleIdChange(e) {
     const v = e.target.value;
-    if (v.length <= MAX_ID_LEN) setStudentId(v);
-    if (loginError) setLoginError("");
+    if (v.length > MAX_ID_LEN) return;
+    setStudentId(v);
+    if (v && !ID_PATTERN.test(v)) {
+      setLoginError("Only letters, numbers, _ @ # * are allowed.");
+    } else {
+      setLoginError("");
+    }
   }
 
   if (!loggedIn) {
@@ -241,8 +248,8 @@ export default function App() {
               aria-describedby={loginError ? "sid-error" : undefined}
             />
             <div className="input-meta">
-              <span>{loginError ? <span id="sid-error" className="login-error">{loginError}</span> : "letters, numbers, _ @ # *"}</span>
-              <span className="char-count">{studentId.length}/{MAX_ID_LEN}</span>
+              <span>{loginError ? <span id="sid-error" className="login-error">{loginError}</span> :""}</span>
+              <span className={`char-count ${studentId.length === MAX_ID_LEN ? "char-count-full" : ""}`}>{studentId.length}/{MAX_ID_LEN}</span>
             </div>
             <button type="submit">Start studying →</button>
           </form>
@@ -268,7 +275,7 @@ export default function App() {
           {pairs.length === 0 && (
             <div className="landing">
               <p className="landing-quote">"{quote}"</p>
-              <p className="landing-eyebrow">start now</p>
+              <p className="landing-eyebrow">start here</p>
 
               <div className="tile-grid">
                 <button className="tile tile-primary" onClick={() => setInput(sampleTopics[0] ? `what is ${sampleTopics[0]}?` : "what is overfitting?")}>

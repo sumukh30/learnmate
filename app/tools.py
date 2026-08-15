@@ -14,6 +14,34 @@ from app.config import SCORES_FILE, LLM_MODEL
 _llm = ChatOllama(model=LLM_MODEL, temperature=0.4)
 
 
+from app.config import BASE_DIR
+
+SESSION_FILE = os.path.join(BASE_DIR, "data", "sessions.json")
+
+
+def _load_sessions() -> dict:
+    if not os.path.exists(SESSION_FILE):
+        return {}
+    with open(SESSION_FILE, "r") as f:
+        return json.load(f)
+
+
+def _save_sessions(sessions: dict) -> None:
+    os.makedirs(os.path.dirname(SESSION_FILE), exist_ok=True)
+    with open(SESSION_FILE, "w") as f:
+        json.dump(sessions, f, indent=2)
+
+
+def get_last_quiz_topic(student_id: str) -> str | None:
+    return _load_sessions().get(student_id, {}).get("last_quiz_topic")
+
+
+def set_last_quiz_topic(student_id: str, topic: str) -> None:
+    sessions = _load_sessions()
+    sessions.setdefault(student_id, {})["last_quiz_topic"] = topic
+    _save_sessions(sessions)
+
+
 def _load_scores() -> dict:
     if not os.path.exists(SCORES_FILE):
         return {}
@@ -60,16 +88,22 @@ def log_quiz_result(student_id: str, topic: str, correct: bool) -> str:
 @tool
 def mark_topic_weak(student_id: str, topic: str) -> str:
     """Manually flag a topic as one the student wants more practice on,
-    without needing a quiz failure first."""
+    without needing a quiz failure first. Validates the topic exists
+    in the indexed notes before accepting it."""
+    from app.retriever import retrieve
+
+    hits = retrieve(topic, k=2, topic=topic)
+    if not hits or not any(topic.lower() in h["text"].lower() for h in hits):
+        return f"I couldn't find '{topic}' in your notes — check the spelling, or add it to your material first."
+
     scores = _load_scores()
     student = scores.setdefault(student_id, {})
     stats = student.setdefault(topic, {"attempts": 1, "correct": 0})
-    # only downgrade if not already tracked as weak, don't erase real history
     if stats.get("attempts", 0) == 0:
         stats["attempts"] = 1
         stats["correct"] = 0
     _save_scores(scores)
-    return f"Got it - I'll prioritize {topic} in future quizzes."
+    return f"Got it — I'll prioritize {topic} in future quizzes."
 
 
 @tool

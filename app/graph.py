@@ -14,7 +14,7 @@ from langgraph.graph import StateGraph, END
 
 from app.config import LLM_MODEL, DEFAULT_STUDENT_ID
 from app.retriever import retrieve
-from app.tools import generate_quiz, log_quiz_result, get_weak_topics, mark_topic_weak
+from app.tools import generate_quiz, log_quiz_result, get_weak_topics, mark_topic_weak, get_last_quiz_topic, set_last_quiz_topic
 
 _llm = ChatOllama(model=LLM_MODEL, temperature=0)
 
@@ -184,11 +184,12 @@ def generate_quiz_node(state: State) -> State:
         note = f"\n\n(note: you've been weak on: {', '.join(state['weak_topics'])})"
     state["response"] = f"{quiz}\n\n(source: {sources}){note}"
     state["last_quiz_topic"] = topic
+    set_last_quiz_topic(state["student_id"], topic)  # persists across separate run() calls
     return state
 
 
 def log_result(state: State) -> State:
-    topic = state.get("topic") or state.get("last_quiz_topic") or "general"
+    topic = state.get("topic") or state.get("last_quiz_topic") or get_last_quiz_topic(state["student_id"]) or "general"
     correct = bool(state.get("is_correct"))
     result = log_quiz_result.invoke({
         "student_id": state["student_id"],
